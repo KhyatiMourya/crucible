@@ -21,9 +21,9 @@ from rich.progress import (
 )
 
 from crucible.core.scorer import finalize_scan_result
+from crucible.integrations.langchain_adapter import LangChainAdapter
 from crucible.models import AgentTarget, Finding, ModuleResult, ScanResult, ScanStatus
 from crucible.modules.security import get_all_modules
-from crucible.integrations.langchain_adapter import LangChainAdapter
 
 if TYPE_CHECKING:
     from collections.abc import Iterator

@@ -318,27 +318,33 @@ def _render_output(
     format: str,
     output: Path | None,
 ) -> None:
+    # 1. Handle Terminal/Stdout Output
     if format == "json":
         json_reporter = JSONReporter()
-        sys.stdout.write(json_reporter.to_json(result) + "\n")
+        # Using a specific name like 'json_output' prevents shadowing the 'json' module
+        json_output = json_reporter.to_json(result)
+        sys.stdout.write(json_output + "\n")
     elif format == "html":
         html_reporter = HTMLReporter()
         if not output:
-            sys.stdout.write(html_reporter.to_html(result) + "\n")
+            html_output = html_reporter.to_html(result)
+            sys.stdout.write(html_output + "\n")
     else:
         terminal = TerminalReporter(console)
         terminal.render(result)
 
+    # 2. Handle File Output
     if output:
         if format == "html" or output.suffix == ".html":
             h_reporter = HTMLReporter()
-            saved = h_reporter.write(result, output)
+            saved_path = h_reporter.write(result, output)
         else:
             j_reporter = JSONReporter()
-            saved = j_reporter.write(result, output)
+            saved_path = j_reporter.write(result, output)
 
+        # Success message for file saving
         if format not in ["json", "html"]:
-            console.print(f"[green]Report saved to {saved}[/green]")
+            console.print(f"[green]Report saved to {saved_path}[/green]")
 
 
 @app.command()

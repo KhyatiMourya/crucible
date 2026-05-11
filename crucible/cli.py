@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import json
 import os
-import profile
 import sys
 from pathlib import Path
 
@@ -302,6 +301,7 @@ def scan(
         proxy=proxy,
     )
     if profile:
+        # We use the global 'json' module here
         profile_data = json.loads(profile.read_text())
         agent_type = profile_data.get("agent_type")
         if not quiet:
@@ -360,8 +360,6 @@ def scan(
             finalize_scan_result(result)
         else:
             if profile_file and profile_file.exists():
-                import json
-
                 try:
                     profile_data = json.loads(profile_file.read_text())
                     rec_modules = profile_data.get("recommended_modules", [])
@@ -544,7 +542,11 @@ def behavioral_audit(
     """Run a multi-turn behavioral drift and integrity audit."""
     parsed_headers = _parse_headers(header)
     agent_target = AgentTarget(
-        name=name, url=target, method=method, headers=parsed_headers, body_template=body_template  # type: ignore[arg-type]
+        name=name,
+        url=target,
+        method=method,
+        headers=parsed_headers,
+        body_template=body_template,  # type: ignore[arg-type]
     )
 
     console.print("\n[bold magenta]Crucible Behavioral Audit[/bold magenta]")
@@ -581,7 +583,11 @@ def profile(
     """Auto-profile an agent's capabilities to generate custom attacks."""
     parsed_headers = _parse_headers(header)
     agent_target = AgentTarget(
-        name=name, url=target, method=method, headers=parsed_headers, body_template=body_template  # type: ignore[arg-type]
+        name=name,
+        url=target,
+        method=method,
+        headers=parsed_headers,
+        body_template=body_template,  # type: ignore[arg-type]
     )
 
     console.print("\n[bold magenta]Crucible Agent Profiler[/bold magenta]")

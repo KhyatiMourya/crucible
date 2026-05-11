@@ -4,9 +4,9 @@ import httpx
 import pytest
 import respx
 
-from crucible.models import AgentTarget, ScanResult, ScanStatus, SecurityModule
-from crucible.modules.security import GoalHijackingModule
 from crucible.core.runner import run_scan
+from crucible.models import AgentTarget, ScanStatus
+from crucible.modules.security import GoalHijackingModule
 
 
 class TestRunner:

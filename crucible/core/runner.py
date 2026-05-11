@@ -23,6 +23,7 @@ from rich.progress import (
 from crucible.core.scorer import finalize_scan_result
 from crucible.models import AgentTarget, Finding, ModuleResult, ScanResult, ScanStatus
 from crucible.modules.security import get_all_modules
+from crucible.integrations.langchain_adapter import LangChainAdapter
 
 if TYPE_CHECKING:
     from collections.abc import Iterator
@@ -59,7 +60,7 @@ def _module_payload_count(module: BaseModule) -> int:
 async def run_module_with_progress(
     module: BaseModule,
     target: AgentTarget,
-    client: httpx.AsyncClient,
+    client: httpx.AsyncClient | LangChainAdapter,
     module_results: list[ModuleResult],
     progress: Progress | _NoopProgress,
     task_id: TaskID,
@@ -104,6 +105,8 @@ async def run_scan(
     quiet: bool = False,
     format: str = "table",
     verbose: bool = False,
+    mode: str = "http",
+    agent: Any = None,
 ) -> ScanResult:
     if modules is None:
         modules = get_all_modules()
@@ -145,6 +148,27 @@ async def run_scan(
         with progress_cm as progress:
             task_id = progress.add_task("Starting scan...", total=total_attacks)
 
+        if mode == "langchain-direct":
+            if agent is None:
+                raise ValueError(
+                    "You must provide an 'agent' object for langchain-direct mode."
+                )
+
+            adapter = LangChainAdapter(agent=agent)
+            async with anyio.create_task_group() as tg:
+                for module in modules:
+                    tg.start_soon(
+                        run_module_with_progress,
+                        module,
+                        target,
+                        adapter,
+                        module_results,
+                        progress,
+                        task_id,
+                        verbose,
+                        verbose_console,
+                    )
+        else:
             async with (
                 httpx.AsyncClient(
                     limits=limits,
